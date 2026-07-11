@@ -3,26 +3,24 @@ package api
 import (
 	"encoding/json"
 	"io"
-	"net/http"
 	"log"
+	"net/http"
+	"strings"
 
 	"backend/internal/ai"
 	"backend/internal/graph"
-	"backend/internal/parser"
 	"backend/internal/models"
+	"backend/internal/parser"
 )
-
 
 type PipelineHandler struct {
 	GroqClient *ai.GroqClient
 }
 
-
 type SecurityAnalysisRequest struct {
 	SourceAddress string `json:"source_address"` 
 	TargetAddress string `json:"target_address"` 
 }
-
 
 func (h *PipelineHandler) AnalyzePipeline(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -30,7 +28,6 @@ func (h *PipelineHandler) AnalyzePipeline(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	
 	err := r.ParseMultipartForm(10 << 20) 
 	if err != nil {
 		http.Error(w, "Failed to parse multipart form input", http.StatusBadRequest)
@@ -57,7 +54,6 @@ func (h *PipelineHandler) AnalyzePipeline(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	
 	resources := parser.IngestTerraformPlan(planBytes)
 	infGraph := graph.NewInfGraph()
 
@@ -67,43 +63,143 @@ func (h *PipelineHandler) AnalyzePipeline(w http.ResponseWriter, r *http.Request
 	}
 
 	
+	var topologyEdges []models.TopologyEdge
+
+	addLink := func(from, to string) {
+		infGraph.AddRelationship(from, to, 1.0)
+		topologyEdges = append(topologyEdges, models.TopologyEdge{From: from, To: to})
+	}
+
 	
-	for i := 0; i < len(resources)-1; i++ {
-		infGraph.AddRelationship(resources[i].Address, resources[i+1].Address, 1.0)
+	var publicSubnets, privateSubnets, dbSubnets []string
+	var webSecurityGroups, dbSecurityGroups []string
+	var computeInstances, dbInstances []string
+
+	var igw, route53, alb, cdn string
+
+	for _, res := range resources {
+		addr := res.Address
+		if strings.Contains(addr, "internet_gateway") { igw = addr }
+		if strings.Contains(addr, "route53_record") { route53 = addr }
+		if strings.Contains(addr, "cloudfront_distribution") { cdn = addr }
+		if strings.Contains(addr, "aws_lb.external_alb") { alb = addr }
+		
+		if strings.Contains(addr, "subnet.public") { publicSubnets = append(publicSubnets, addr) }
+		if strings.Contains(addr, "subnet.private_app") { privateSubnets = append(privateSubnets, addr) }
+		if strings.Contains(addr, "subnet.private_db") { dbSubnets = append(dbSubnets, addr) }
+		
+		if strings.Contains(addr, "security_group.web_sg") || strings.Contains(addr, "security_group.alb_sg") { 
+			webSecurityGroups = append(webSecurityGroups, addr) 
+		}
+		if strings.Contains(addr, "security_group.db_sg") { dbSecurityGroups = append(dbSecurityGroups, addr) }
+		
+		if strings.Contains(addr, "instance") || strings.Contains(addr, "lambda") || strings.Contains(addr, "autoscaling_group") {
+			computeInstances = append(computeInstances, addr)
+		}
+		if strings.Contains(addr, "db_instance") { dbInstances = append(dbInstances, addr) }
+	}
+
+	
+	if route53 != "" && cdn != "" { addLink(route53, cdn) }
+	if cdn != "" && igw != "" { addLink(cdn, igw) }
+	
+	for _, sub := range publicSubnets {
+		if igw != "" { addLink(igw, sub) }
+		if alb != "" { addLink(sub, alb) }
+	}
+
+	for _, sg := range webSecurityGroups {
+		if alb != "" { addLink(alb, sg) }
+		for _, comp := range computeInstances { addLink(sg, comp) }
+	}
+
+	for _, comp := range computeInstances {
+		for _, sub := range privateSubnets { addLink(comp, sub) }
+		for _, dbSg := range dbSecurityGroups { addLink(comp, dbSg) }
+	}
+
+	for _, dbSg := range dbSecurityGroups {
+		for _, dbInst := range dbInstances { addLink(dbSg, dbInst) }
+	}
+
+	for _, dbInst := range dbInstances {
+		for _, dbSub := range dbSubnets { addLink(dbInst, dbSub) }
+	}
+
+	
+	
+	
+	connectedNodes := make(map[string]bool)
+	for _, edge := range topologyEdges {
+		connectedNodes[edge.From] = true
+		connectedNodes[edge.To] = true
+	}
+
+	var primaryVpc string
+	for _, res := range resources {
+		if strings.Contains(res.Address, "aws_vpc.") {
+			primaryVpc = res.Address
+			break
+		}
+	}
+
+	for _, res := range resources {
+		if !connectedNodes[res.Address] {
+			addr := res.Address
+			
+			if strings.Contains(addr, "iam_role") || strings.Contains(addr, "instance_profile") {
+				for _, comp := range computeInstances {
+					addLink(addr, comp)
+					break
+				}
+			} else if strings.Contains(addr, "s3_bucket") || strings.Contains(addr, "kms_") || strings.Contains(addr, "secretsmanager_") {
+				if len(dbInstances) > 0 {
+					addLink(dbInstances[0], addr)
+				} else if primaryVpc != "" {
+					addLink(primaryVpc, addr)
+				}
+			} else if strings.Contains(addr, "route_table") || strings.Contains(addr, "eip") || strings.Contains(addr, "nat_gateway") {
+				if igw != "" {
+					addLink(igw, addr)
+				}
+			} else if primaryVpc != "" && addr != primaryVpc {
+				addLink(primaryVpc, addr)
+			}
+		}
 	}
 
 	
 	attackPath, err := infGraph.FindCriticalAttackPaths(reqConfig.SourceAddress, reqConfig.TargetAddress)
+	
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"status":      "SAFE",
-			"attack_path": nil,
-			"remedies":    []string{},
-		})
+		response := models.AnalysisResponse{
+			Status:     "SAFE",
+			AllNodes:   resources,
+			AllEdges:   topologyEdges,
+			AttackPath: nil,
+			Remedies:   []models.ArchitectSuggestion{},
+		}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	
-
-
-	
 	suggestions, err := h.GroqClient.AnalyzeThreatPath(r.Context(), attackPath)
 	if err != nil {
-		
 		log.Printf("[⚠️ GROQ ERROR]: Pipeline analysis failed: %v", err)
-		
-		
 		suggestions = []models.ArchitectSuggestion{}
 	}
 
 	
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":      "VULNERABLE",
-		"attack_path": attackPath,
-		"remedies":    suggestions,
-	})
+	response := models.AnalysisResponse{
+		Status:     "VULNERABLE",
+		AllNodes:   resources,
+		AllEdges:   topologyEdges,
+		AttackPath: attackPath,
+		Remedies:   suggestions,
+	}
+	json.NewEncoder(w).Encode(response)
 }

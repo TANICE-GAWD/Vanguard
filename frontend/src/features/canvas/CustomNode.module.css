@@ -1,71 +1,115 @@
 .nodeCard {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 12px;
+  background: #0b0f19;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 10px 12px;
   width: 240px;
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #ffffff;
+  color: #f1f5f9;
   position: relative;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nodeCard:hover {
-  border-color: #38bdf8;
-  transform: translateY(-2px);
+  border-color: #3b82f6;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
 }
 
 .iconWrapper {
-  background: #0f172a;
+  background: #141b2d;
+  color: #94a3b8;
   padding: 8px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid #1e293b;
+  transition: all 0.2s;
 }
 
 .metaInfo {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   flex: 1;
   overflow: hidden;
 }
 
 .label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #f1f5f9;
+  color: #e2e8f0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .typeLabel {
-  font-size: 10px;
+  font-size: 9px;
   font-family: monospace;
-  color: #64748b;
+  color: #475569;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+}
+
+
+.flowHandle {
+  background: #334155 !important;
+  border: 1px solid #070a12 !important;
+  width: 7px !important;
+  height: 7px !important;
+  transition: background 0.2s;
+}
+
+.nodeCard:hover .flowHandle {
+  background: #3b82f6 !important;
 }
 
 
 .compromised {
-  border: 2px solid #ef4444;
-  box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+  border: 1px solid #f43f5e;
+  box-shadow: 0 0 16px rgba(244, 63, 94, 0.2);
+  background: linear-gradient(to right, #0f0a12, #0b0f19);
 }
 
 .compromised .iconWrapper {
-  color: #f87171;
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.08);
+  border-color: rgba(244, 63, 94, 0.3);
 }
 
+.compromised .label {
+  color: #ffe4e6;
+}
+
+
 .source {
-  border: 2px solid #38bdf8;
+  border: 1px solid #0284c7;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.15);
 }
 
 .source .iconWrapper {
   color: #38bdf8;
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+
+.mitigated {
+  border: 1px solid #10b981 !important;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.15) !important;
+  background: linear-gradient(to right, #091a14, #0b0f19) !important;
+}
+
+.mitigated .iconWrapper {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.mitigated .typeLabel {
+  color: #059669;
 }

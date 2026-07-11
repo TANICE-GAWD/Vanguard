@@ -11,9 +11,17 @@ export interface ArchitectSuggestion {
   reasoning: string;
 }
 
+
+export interface TopologyEdge {
+  from: string;
+  to: string;
+}
+
 export interface AnalysisResponse {
   status: 'SAFE' | 'VULNERABLE';
-  attack_path: string[] | null;
+  all_nodes: ResourceNode[]; 
+  all_edges: TopologyEdge[]; 
+  attack_path: string[] | null; 
   remedies: ArchitectSuggestion[];
 }
 
