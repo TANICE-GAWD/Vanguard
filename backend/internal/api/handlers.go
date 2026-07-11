@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"log"
 
-	"architect-x/backend/internal/ai"
-	"architect-x/backend/internal/graph"
-	"architect-x/backend/internal/parser"
+	"backend/internal/ai"
+	"backend/internal/graph"
+	"backend/internal/parser"
+	"backend/internal/models"
 )
 
 
@@ -84,8 +86,14 @@ func (h *PipelineHandler) AnalyzePipeline(w http.ResponseWriter, r *http.Request
 	}
 
 	
+
+
+	
 	suggestions, err := h.GroqClient.AnalyzeThreatPath(r.Context(), attackPath)
 	if err != nil {
+		
+		log.Printf("[⚠️ GROQ ERROR]: Pipeline analysis failed: %v", err)
+		
 		
 		suggestions = []models.ArchitectSuggestion{}
 	}
