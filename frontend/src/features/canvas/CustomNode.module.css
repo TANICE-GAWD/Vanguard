@@ -1,0 +1,71 @@
+.nodeCard {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 12px;
+  width: 240px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #ffffff;
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.nodeCard:hover {
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+}
+
+.iconWrapper {
+  background: #0f172a;
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.typeLabel {
+  font-size: 10px;
+  font-family: monospace;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+
+.compromised {
+  border: 2px solid #ef4444;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+}
+
+.compromised .iconWrapper {
+  color: #f87171;
+}
+
+.source {
+  border: 2px solid #38bdf8;
+}
+
+.source .iconWrapper {
+  color: #38bdf8;
+}
