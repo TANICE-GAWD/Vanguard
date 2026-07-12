@@ -12,10 +12,8 @@ func RegisterRoutes(handler *PipelineHandler) http.Handler {
 	mux.HandleFunc("/api/v1/analyze", handler.AnalyzePipeline)
 	
 	
-	
-	
+	mux.HandleFunc("/api/v1/analyze/diff", handler.AnalyzeBranchDiff)
 
-	
 	return applyMiddleware(mux)
 }
 
