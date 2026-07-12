@@ -1,130 +1,227 @@
 .canvasContainer {
   width: 100vw;
   height: 100vh;
-  background-color: #070a12;
+  background-color: #000000;
   position: relative;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   overflow: hidden;
 }
 
+.flowViewport {
+  z-index: 1;
+}
+
+
 .floatingControlPanel {
   position: absolute;
-  top: 24px;
-  left: 24px;
+  top: 16px;
+  left: 16px;
   z-index: 10;
-  background: rgba(11, 15, 25, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid #1e293b;
-  padding: 18px;
-  border-radius: 14px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
-  max-width: 300px;
-  color: #f8fafc;
+  background: #0a0a0a;
+  border: 1px solid #333333;
+  padding: 12px 16px;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  width: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panelHeaderRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .panelTitle {
-  margin: 0 0 6px 0;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #38bdf8;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.01em;
 }
 
-.panelDescription {
-  margin: 0 0 16px 0;
-  font-size: 11px;
-  color: #64748b;
-  line-height: 1.6;
+.controlLayoutStack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
 }
+
+.panelDescription, .telemetryContainer {
+  display: none;
+}
+
 
 .fileInputWrapper {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  background: #0f172a;
-  border: 1px dashed #334155;
-  padding: 12px;
-  border-radius: 8px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  background: #000000;
+  border: 1px solid #333333;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 11px;
-  color: #94a3b8;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.uploadIcon {
+  color: #666666;
+  flex-shrink: 0;
+}
+
+.fileNameLabel {
+  font-size: 12px;
+  color: #888888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fileInputWrapper:hover {
-  border-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.05);
-  color: #f1f5f9;
+  border-color: #444444;
+  background: #111111;
+}
+
+.fileInputWrapper:hover .uploadIcon {
+  color: #888888;
+}
+
+.fileInputWrapper:hover .fileNameLabel {
+  color: #ffffff;
 }
 
 .fileInput {
   display: none;
 }
 
+
 .actionButton {
-  width: 100%;
-  margin-top: 12px;
-  background-color: #2563eb;
-  color: #ffffff;
-  padding: 11px;
-  border: none;
-  border-radius: 8px;
+  background-color: #ffffff;
+  color: #000000;
+  padding: 6px 16px;
+  border: 1px solid #ffffff;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 12px;
-  letter-spacing: 0.02em;
-  transition: all 0.2s;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .actionButton:hover:not(:disabled) {
-  background-color: #3b82f6;
-  box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+  background-color: #000000;
+  color: #ffffff;
+  border-color: #333333;
 }
 
 .actionButton:disabled {
-  background-color: #1e293b;
-  color: #475569;
+  background-color: #111111;
+  border-color: #333333;
+  color: #444444;
   cursor: not-allowed;
 }
 
-.statusIndicator {
-  margin-top: 12px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 11px;
+.loadingFlex {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
+
+.statusBadge {
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  text-align: center;
+  font-family: monospace;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
-.vulnerable {
-  background: rgba(244, 63, 94, 0.1);
-  border: 1px solid #f43f5e;
-  color: #fda4af;
-  box-shadow: 0 0 10px rgba(244, 63, 94, 0.15);
+.badgeVulnerable {
+  background: rgba(238, 0, 0, 0.1);
+  border: 1px solid #ee0000;
+  color: #ff3333;
 }
 
-.safe {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid #10b981;
-  color: #a7f3d0;
+.badgeSafe {
+  background: rgba(0, 112, 243, 0.1);
+  border: 1px solid #0070f3;
+  color: #3291ff;
+}
+
+.statusIndicator {
+  display: none;
 }
 
 
 .swimlaneContainer {
-  background: rgba(15, 23, 42, 0.25) !important;
-  border: 1px dashed rgba(51, 65, 85, 0.6) !important;
-  border-radius: 16px !important;
+  background: #050505 !important;
+  border: 1px solid #111111 !important;
+  border-radius: 6px !important;
   pointer-events: none;
   z-index: -1;
 }
 
 .laneHeader {
-  padding: 14px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #111111;
+}
+
+.laneLabelText {
   font-size: 10px;
-  font-family: monospace;
-  font-weight: 700;
-  color: #475569;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  color: #666666;
+  letter-spacing: 0.05em;
+}
+
+.laneHeaderLine {
+  display: none;
+}
+
+
+.customFlowControls {
+  left: 16px;
+  bottom: 16px;
+  background: #0a0a0a !important;
+  border: 1px solid #333333 !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+  box-shadow: none !important;
+}
+
+.customFlowControls button {
+  background: transparent !important;
+  border-bottom: 1px solid #111111 !important;
+  color: #666666 !important;
+  fill: #666666 !important;
+  transition: all 0.15s ease !important;
+}
+
+.customFlowControls button:hover {
+  background: #111111 !important;
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.customMiniMap {
+  right: 400px !important;
+  bottom: 16px !important;
+  border: 1px solid #333333 !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  background-color: #0a0a0a !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

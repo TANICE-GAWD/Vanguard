@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import ReactFlow, { Background, Controls, useReactFlow, ReactFlowProvider, MiniMap, type Node, type Edge } from 'reactflow';
+import ReactFlow, { Background, BackgroundVariant, Controls, useReactFlow, ReactFlowProvider, MiniMap, type Node, type Edge } from 'reactflow';
+import { UploadCloud, Loader2 } from 'lucide-react';
 import { CustomNode } from './CustomNode';
 import type { AnalysisResponse, SecurityContext } from '../../types';
 import styles from './Canvas.module.css';
@@ -13,10 +14,9 @@ interface CanvasProps {
   mitigatedNodes: string[];
 }
 
-
 const SwimlaneGroup: React.FC<{ data: { label: string } }> = ({ data }) => (
   <div className={styles.laneHeader}>
-    <span>{data.label}</span>
+    <span className={styles.laneLabelText}>{data.label}</span>
   </div>
 );
 
@@ -24,7 +24,6 @@ const CanvasComponent: React.FC<CanvasProps> = ({ loading, data, analyzeInfrastr
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { fitView } = useReactFlow();
 
- 
   const nodeTypes = useMemo(() => ({ 
     cloudResource: CustomNode,
     swimlane: SwimlaneGroup 
@@ -34,7 +33,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({ loading, data, analyzeInfrastr
 
   useEffect(() => {
     if (data?.all_nodes && data.all_nodes.length > 0) {
-      setTimeout(() => { fitView({ duration: 800, padding: 0.15 }); }, 150);
+      setTimeout(() => { fitView({ duration: 600, padding: 0.1 }); }, 50);
     }
   }, [data, fitView]);
 
@@ -50,17 +49,16 @@ const CanvasComponent: React.FC<CanvasProps> = ({ loading, data, analyzeInfrastr
   const nodes: Node[] = useMemo(() => {
     if (!data || !data.all_nodes || data.all_nodes.length === 0) {
       return [
-        { id: 'aws_internet_gateway.igw', type: 'cloudResource', position: { x: 100, y: 200 }, data: { isSource: true, isTarget: false, isMitigated: mitigatedNodes.includes('aws_internet_gateway.igw') } },
-        { id: 'aws_security_group.web_sg', type: 'cloudResource', position: { x: 450, y: 200 }, data: { isSource: false, isTarget: false, isMitigated: mitigatedNodes.includes('aws_security_group.web_sg') } },
-        { id: 'aws_db_instance.rds', type: 'cloudResource', position: { x: 800, y: 200 }, data: { isSource: false, isTarget: true, isMitigated: mitigatedNodes.includes('aws_db_instance.rds') } },
+        { id: 'aws_internet_gateway.igw', type: 'cloudResource', position: { x: 100, y: 180 }, data: { isSource: true, isTarget: false, isMitigated: mitigatedNodes.includes('aws_internet_gateway.igw') } },
+        { id: 'aws_security_group.web_sg', type: 'cloudResource', position: { x: 450, y: 180 }, data: { isSource: false, isTarget: false, isMitigated: mitigatedNodes.includes('aws_security_group.web_sg') } },
+        { id: 'aws_db_instance.rds', type: 'cloudResource', position: { x: 800, y: 180 }, data: { isSource: false, isTarget: true, isMitigated: mitigatedNodes.includes('aws_db_instance.rds') } },
       ];
     }
 
     const horizontalSpacing = 380;
-    const verticalSpacing = 96;
+    const verticalSpacing = 80;
     const columnTrackers: { [key: number]: number } = { 0: 0, 1: 0, 2: 0, 3: 0 };
 
-   
     data.all_nodes.forEach((resource) => {
       const addr = resource.address;
       let col = 2;
@@ -72,20 +70,17 @@ const CanvasComponent: React.FC<CanvasProps> = ({ loading, data, analyzeInfrastr
     });
 
     const maxNodesInColumn = Math.max(columnTrackers[0], columnTrackers[1], columnTrackers[2], columnTrackers[3], 4);
-    const generatedLaneHeight = maxNodesInColumn * verticalSpacing + 120;
+    const generatedLaneHeight = maxNodesInColumn * verticalSpacing + 100;
 
-   
     const lanes: Node[] = [
-      { id: 'lane-perimeter', type: 'swimlane', data: { label: '01 // PERIMETER NETWORKING' }, position: { x: 40, y: 40 }, style: { width: 320, height: generatedLaneHeight }, className: styles.swimlaneContainer, draggable: false },
-      { id: 'lane-routing', type: 'swimlane', data: { label: '02 // PROXIES & FIREWALLS' }, position: { x: 40 + horizontalSpacing, y: 40 }, style: { width: 320, height: generatedLaneHeight }, className: styles.swimlaneContainer, draggable: false },
-      { id: 'lane-compute', type: 'swimlane', data: { label: '03 // COMPUTE CLUSTER' }, position: { x: 40 + horizontalSpacing * 2, y: 40 }, style: { width: 320, height: generatedLaneHeight }, className: styles.swimlaneContainer, draggable: false },
-      { id: 'lane-storage', type: 'swimlane', data: { label: '04 // ISOLATED STORAGE & DATA' }, position: { x: 40 + horizontalSpacing * 3, y: 40 }, style: { width: 320, height: generatedLaneHeight }, className: styles.swimlaneContainer, draggable: false },
+      { id: 'lane-perimeter', type: 'swimlane', data: { label: 'PERIMETER NETWORKING' }, position: { x: 30, y: 30 }, style: { width: 320, height: generatedLaneHeight }, className: styles.swimlaneContainer, draggable: false },
+      { id: 'lane-routing', type: 'swimlane', data: { label: 'PROXIES & CONTROLS' }, position: { x: 30 + horizontalSpacing, y: 30 }, style: { width: 320, height: generatedLaneHeight }, className: styles.swimlaneContainer, draggable: false },
+      { id: 'lane-compute', type: 'swimlane', data: { label: 'COMPUTE ENVIRONMENT' }, position: { x: 30 + horizontalSpacing * 2, y: 30 }, style: { width: 320, height: generatedLaneHeight }, className: styles.swimlaneContainer, draggable: false },
+      { id: 'lane-storage', type: 'swimlane', data: { label: 'STORAGE & DATASTORES' }, position: { x: 30 + horizontalSpacing * 3, y: 30 }, style: { width: 320, height: generatedLaneHeight }, className: styles.swimlaneContainer, draggable: false },
     ];
 
-    
     columnTrackers[0] = 0; columnTrackers[1] = 0; columnTrackers[2] = 0; columnTrackers[3] = 0;
 
-   
     const resourceNodes: Node[] = data.all_nodes.map((resource) => {
       const addr = resource.address;
       let columnIndex = 2;
@@ -114,7 +109,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({ loading, data, analyzeInfrastr
         extent: 'parent', 
         position: {
           x: 40,
-          y: 70 + currentRowIndex * verticalSpacing,
+          y: 60 + currentRowIndex * verticalSpacing,
         },
         data: {
           isSource,
@@ -133,8 +128,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({ loading, data, analyzeInfrastr
       const e2Mitigated = hiddenEdges.includes('e2') || mitigatedNodes.includes('aws_security_group.web_sg') || mitigatedNodes.includes('aws_db_instance.rds');
 
       return [
-        { id: 'e1', source: 'aws_internet_gateway.igw', target: 'aws_security_group.web_sg', animated: !e1Mitigated, style: { stroke: e1Mitigated ? '#334155' : '#ef4444', strokeWidth: 2 } },
-        { id: 'e2', source: 'aws_security_group.web_sg', target: 'aws_db_instance.rds', animated: !e2Mitigated, style: { stroke: e2Mitigated ? '#334155' : '#ef4444', strokeWidth: 2 } },
+        { id: 'e1', source: 'aws_internet_gateway.igw', target: 'aws_security_group.web_sg', animated: !e1Mitigated, style: { stroke: e1Mitigated ? '#333333' : '#0070f3', strokeWidth: 1.5 } },
+        { id: 'e2', source: 'aws_security_group.web_sg', target: 'aws_db_instance.rds', animated: !e2Mitigated, style: { stroke: e2Mitigated ? '#333333' : '#0070f3', strokeWidth: 1.5 } },
       ];
     }
 
@@ -155,12 +150,11 @@ const CanvasComponent: React.FC<CanvasProps> = ({ loading, data, analyzeInfrastr
         mitigatedNodes.includes(edge.from) || 
         mitigatedNodes.includes(edge.to);
 
-      
       const strokeColor = isMitigated 
-        ? '#1e293b' 
+        ? '#111111' 
         : isPartOfAttackPath 
-          ? '#f43f5e' 
-          : '#334155';
+          ? '#ee0000' 
+          : '#333333';
 
       return {
         id: currentEdgeId,
@@ -170,10 +164,10 @@ const CanvasComponent: React.FC<CanvasProps> = ({ loading, data, analyzeInfrastr
         type: 'smoothstep',
         style: {
           stroke: strokeColor,
-          strokeWidth: isPartOfAttackPath ? 3.5 : 1.2,
+          strokeWidth: isPartOfAttackPath ? 2 : 1,
           strokeDasharray: isMitigated ? '4, 4' : 'none',
           opacity: isMitigated ? 0.2 : isPartOfAttackPath ? 1.0 : 0.4,
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'all 0.15s ease',
         },
       };
     });
@@ -182,30 +176,50 @@ const CanvasComponent: React.FC<CanvasProps> = ({ loading, data, analyzeInfrastr
   return (
     <div className={styles.canvasContainer}>
       <div className={styles.floatingControlPanel}>
-        <h3 className={styles.panelTitle}>ARCHITECT-X CONTROL</h3>
-        <p className={styles.panelDescription}>Upload plan configurations matrix to overlay deep context security graphs.</p>
-        <label className={styles.fileInputWrapper}>
-          {selectedFile ? selectedFile.name : 'Select plan.json...'}
-          <input type="file" accept=".json" className={styles.fileInput} onChange={handleFileChange} />
-        </label>
+        <div className={styles.panelHeaderRow}>
+          <h3 className={styles.panelTitle}>Architect Control</h3>
+          {data && (
+            <span className={`${styles.statusBadge} ${data.status === 'VULNERABLE' ? styles.badgeVulnerable : styles.badgeSafe}`}>
+              {data.status}
+            </span>
+          )}
+        </div>
         
-        <button className={styles.actionButton} onClick={handleTriggerScan} disabled={!selectedFile || loading}>
-          {loading ? 'Analyzing Topology...' : 'Scan Attack Path'}
-        </button>
-        
-        {data && (
-          <div className={`${styles.statusIndicator} ${data.status === 'VULNERABLE' ? styles.vulnerable : styles.safe}`}>
-            Topology Status: {data.status}
-          </div>
-        )}
+        <div className={styles.controlLayoutStack}>
+          <label className={styles.fileInputWrapper}>
+            <UploadCloud size={14} className={styles.uploadIcon} />
+            <span className={styles.fileNameLabel}>
+              {selectedFile ? selectedFile.name : 'Import plan.json'}
+            </span>
+            <input type="file" accept=".json" className={styles.fileInput} onChange={handleFileChange} />
+          </label>
+          
+          <button className={styles.actionButton} onClick={handleTriggerScan} disabled={!selectedFile || loading}>
+            {loading ? (
+              <div className={styles.loadingFlex}>
+                <Loader2 size={14} className={styles.spinIcon} />
+                <span>Scanning...</span>
+              </div>
+            ) : (
+              'Scan Graph'
+            )}
+          </button>
+        </div>
       </div>
-      <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes}>
-        <Background color="#0f172a" gap={20} size={1} />
-        <Controls />
+
+      <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} className={styles.flowViewport}>
+        <Background variant={BackgroundVariant.Dots} color="#333333" gap={20} size={1} />
+        <Controls className={styles.customFlowControls} showInteractive={false} />
         <MiniMap 
-          style={{ background: '#0b0f19', border: '1px solid #1e293b', borderRadius: '8px' }} 
-          maskColor="rgba(15, 23, 42, 0.6)" 
-          nodeColor="#1e293b"
+          className={styles.customMiniMap}
+          maskColor="rgba(0, 0, 0, 0.6)" 
+          pannable={true} 
+          nodeColor={(node) => {
+            if (node.type === 'swimlane') return 'transparent';
+            if (node.data?.isMitigated) return '#0070f3';
+            if (node.data?.isTarget) return '#ee0000';
+            return '#333333';
+          }}
         />
       </ReactFlow>
     </div>
