@@ -11,7 +11,6 @@ export interface ArchitectSuggestion {
   reasoning: string;
 }
 
-
 export interface TopologyEdge {
   from: string;
   to: string;
@@ -28,4 +27,31 @@ export interface AnalysisResponse {
 export interface SecurityContext {
   source_address: string;
   target_address: string;
+}
+
+
+
+
+
+export type DiffStatus = 'UNCHANGED' | 'ADDED' | 'REMOVED';
+
+export interface DiffNode {
+  address: string;
+  type: string;
+  name: string;
+  status: DiffStatus;
+}
+
+export interface DiffEdge {
+  from: string;
+  to: string;
+  status: DiffStatus;
+}
+
+export interface GraphDiffResponse {
+  status: 'SAFE' | 'VULNERABLE';
+  nodes: DiffNode[];
+  edges: DiffEdge[];
+  delta_attack_path: string[] | null;
+  remedies: ArchitectSuggestion[];
 }

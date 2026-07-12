@@ -2,19 +2,24 @@ import React from 'react';
 import { Handle, Position, type NodeProps } from 'reactflow';
 import { 
   Database, ShieldAlert, Globe, Server, CheckCircle2, 
-  Cpu, Key, Layers, Radio, HelpCircle, HardDrive 
+  Cpu, Key, Layers, Radio, HardDrive, Plus, Trash2 
 } from 'lucide-react';
+import type { DiffStatus } from '../../types';
 import styles from './CustomNode.module.css';
 
 export const CustomNode: React.FC<NodeProps> = ({ id, data }) => {
   const isTarget = data.isTarget;
   const isSource = data.isSource;
   const isMitigated = data.isMitigated; 
+  const status: DiffStatus = data.status || 'UNCHANGED';
 
-  
   const getResourceIcon = () => {
-    if (isMitigated) return <CheckCircle2 size={16} style={{ color: '#10b981' }} />;
+    if (isMitigated) return <CheckCircle2 size={16} style={{ color: '#0070f3' }} />;
     
+    
+    if (status === 'ADDED') return <Plus size={14} className={styles.addedIcon} />;
+    if (status === 'REMOVED') return <Trash2 size={14} className={styles.removedIcon} />;
+
     const lowerId = id.toLowerCase();
     if (lowerId.includes('db_instance') || lowerId.includes('rds')) return <Database size={16} />;
     if (lowerId.includes('dynamodb')) return <HardDrive size={16} />;
@@ -31,6 +36,7 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data }) => {
   const simpleName = id.split('.').pop() || id;
   const providerPrefix = id.split('.')[0] || 'aws';
 
+  
   const cardClassName = `${styles.nodeCard} ${
     isMitigated 
       ? styles.mitigated
@@ -39,6 +45,12 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data }) => {
         : isSource 
           ? styles.source 
           : ''
+  } ${
+    status === 'ADDED' 
+      ? styles.nodeAdded 
+      : status === 'REMOVED' 
+        ? styles.nodeRemoved 
+        : ''
   }`;
 
   return (
@@ -50,9 +62,15 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data }) => {
       </div>
 
       <div className={styles.metaInfo}>
-        <div className={styles.label} title={simpleName}>{simpleName}</div>
+        <div className={`${styles.label} ${status === 'REMOVED' ? styles.textStrikethrough : ''}`} title={simpleName}>
+          {simpleName}
+        </div>
         <div className={styles.typeLabel}>
-          {isMitigated ? 'SECURED SIMULATED' : providerPrefix.replace('_', ' ')}
+          {isMitigated 
+            ? 'SECURED SIMULATED' 
+            : status !== 'UNCHANGED' 
+              ? `GIT ${status}` 
+              : providerPrefix.replace('_', ' ')}
         </div>
       </div>
 
